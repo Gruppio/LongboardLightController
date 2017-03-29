@@ -2,7 +2,11 @@
 #include <Adafruit_NeoPixel.h>
 
 #define PIXEL_PIN   2
-#define NUM_PIXELS  18
+#define NUM_PIXELS  36
+#define HALF_NUM_PIXELS NUM_PIXELS/2
+
+#define COLOR uint32_t
+#define COLOR_INTENSITY 255
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUM_PIXELS, PIXEL_PIN, NEO_GRB + NEO_KHZ800);
 
@@ -10,89 +14,41 @@ void setup() {
     pixels.begin();
 }
 
+byte color = 0;
 void loop() {
-    setAllPixelsColor(0, 0, 50);
+    for (int i = 0; i < HALF_NUM_PIXELS; i++) {
+        byte phase = (255 / HALF_NUM_PIXELS) * i;
+        byte phasedColor = color + phase;
+        setPixelColorSymmetric(i, getColorWheel(phasedColor));
+        color--;
+    }
     pixels.show();
-    delay(1000);
+    delay(50);
+}
+
+void setPixelColorSymmetric(int index, COLOR color) {
+    pixels.setPixelColor(index, color);
+    pixels.setPixelColor(NUM_PIXELS - index, color);
+}
+
+// Input a value 0 to 255 to get a color value.
+// The colours are a transition r - g - b - back to r.
+uint32_t getColorWheel(byte index) {
+    if(index < 85) {
+        return pixels.Color(index * 3, 255 - index * 3, 0);
+    } else if(index < 170) {
+        index -= 85;
+        return pixels.Color(255 - index * 3, 0, index * 3);
+    } else {
+        index -= 170;
+        return pixels.Color(0, index * 3, 255 - index * 3);
+    }
 }
 
 /*
-void setAllPixelsColor(uint8_t r, uint8_t g, uint8_t b) {
-    for (int i = 0; i < NUM_PIXELS; i++) {
-        pixels.setPixelColor(i, r, g, b);
-    }
-    pixels.show();
-}
-
-void displayNumberOfActiveUsers(int numberOfActiveUsers) {
-    uint8_t colorIntensity = 80;
-    uint32_t color1x = pixels.Color(0, colorIntensity, 0);
-    uint32_t color2x = pixels.Color(colorIntensity, colorIntensity, 0);
-    uint32_t color3x = pixels.Color(colorIntensity, 0, 0);
-    uint32_t color4x = pixels.Color(colorIntensity, colorIntensity, colorIntensity);
-
-    int remainingUsers = numberOfActiveUsers;
-    int numberOfUsersValue1x = 1;
-    int numberOfUsersValue2x = numberOfUsersValue1x * NUM_PIXELS;
-    int numberOfUsersValue3x = numberOfUsersValue2x * NUM_PIXELS;
-    int numberOfUsersValue4x = numberOfUsersValue3x * NUM_PIXELS;
-
-    int numberOfPixels1x = 0;
-    int numberOfPixels2x = 0;
-    int numberOfPixels3x = 0;
-    int numberOfPixels4x = 0;
-
-    while (remainingUsers >= numberOfUsersValue4x) {
-        remainingUsers -= numberOfUsersValue4x;
-        numberOfPixels4x++;
-    }
-
-    while (remainingUsers >= numberOfUsersValue3x) {
-        remainingUsers -= numberOfUsersValue3x;
-        numberOfPixels3x++;
-    }
-
-    while (remainingUsers >= numberOfUsersValue2x) {
-        remainingUsers -= numberOfUsersValue2x;
-        numberOfPixels2x++;
-    }
-
-    while (remainingUsers >= numberOfUsersValue1x) {
-        remainingUsers -= numberOfUsersValue1x;
-        numberOfPixels1x++;
-    }
-
-    pixels.clear();
-    int numberOfPixelsToSet = numberOfPixels1x + numberOfPixels2x + numberOfPixels3x + numberOfPixels4x;
-
-    for (int pixelIndex = 0;pixelIndex < numberOfPixelsToSet; pixelIndex++) {
-        if (numberOfPixels4x) {
-            numberOfPixels4x--;
-            pixels.setPixelColor(pixelIndex, color4x);
-            pixels.show();
-            continue;
-        }
-
-        if (numberOfPixels3x) {
-            numberOfPixels3x--;
-            pixels.setPixelColor(pixelIndex, color3x);
-            pixels.show();
-            continue;
-        }
-
-        if (numberOfPixels2x) {
-            numberOfPixels2x--;
-            pixels.setPixelColor(pixelIndex, color2x);
-            pixels.show();
-            continue;
-        }
-
-        if (numberOfPixels1x) {
-            numberOfPixels1x--;
-            pixels.setPixelColor(pixelIndex, color1x);
-            pixels.show();
-            continue;
-        }
-    }
+byte color = 0;
+void loop() {
+    setAllPixelsColor(getColorWheel(color++));
+    delay(50);
 }
 */
